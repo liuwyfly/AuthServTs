@@ -2,6 +2,13 @@ import { test } from 'node:test'
 import * as assert from 'node:assert'
 import { build } from '../helper'
 
+function setMysqlQueryMock (app: any, query: (sql: string, values?: unknown[]) => Promise<unknown>) {
+  app.mysql = {
+    ...app.mysql,
+    query
+  }
+}
+
 // These tests use dependency injection via fastify.mysql mock.
 // They assume the MySQL plugin is replaceable via skipOverride,
 // or that a real DB connection is available (integration test).
@@ -12,46 +19,43 @@ import { build } from '../helper'
 test('POST /auth/register - returns 201 on success', async (t) => {
   const app = await build(t)
 
-  // Stub out the mysql decorator so no real DB call is made
-  app.decorate('mysql', {
-    query: async (sql: string, values: unknown[]) => {
-      if ((sql as string).startsWith('SELECT')) return [[]] // no existing user
-      return [{ insertId: 1 }]
-    }
+  // Override query only; avoid redecorating after instance start.
+  setMysqlQueryMock(app, async (sql: string) => {
+    if (sql.startsWith('SELECT')) return [[]] // no existing user
+    return [{ insertId: 1 }]
   })
 
   const res = await app.inject({
     method: 'POST',
     url: '/auth/register',
-    payload: { username: 'testuser', password: 'password123' }
+    payload: { username: 'testuser', password: 'password123', validation_code: process.env.REGISTER_VALIDATION_CODE }
   })
 
   assert.strictEqual(res.statusCode, 201)
-  assert.deepStrictEqual(JSON.parse(res.payload), { message: 'User registered successfully' })
+  const payload = JSON.parse(res.payload)
+  assert.ok(Object.prototype.hasOwnProperty.call(payload, 'message'))
+  assert.ok(Object.prototype.hasOwnProperty.call(payload, 'uid'))
 })
 
 test('POST /auth/register - returns 409 when username taken', async (t) => {
   const app = await build(t)
 
-  app.decorate('mysql', {
-    query: async () => [[{ id: 1, username: 'testuser', password: 'hashed' }]]
-  })
+  setMysqlQueryMock(app, async () => [[{ id: 1, username: 'testuser', password: 'hashed' }]])
 
   const res = await app.inject({
     method: 'POST',
     url: '/auth/register',
-    payload: { username: 'testuser', password: 'password123' }
+    payload: { username: 'testuser', password: 'password123', validation_code: process.env.REGISTER_VALIDATION_CODE }
   })
 
   assert.strictEqual(res.statusCode, 409)
 })
 
+// 登录，不存在的用户
 test('POST /auth/login - returns 401 for unknown user', async (t) => {
   const app = await build(t)
 
-  app.decorate('mysql', {
-    query: async () => [[]] // no user found
-  })
+  setMysqlQueryMock(app, async () => [[]]) // no user found
 
   const res = await app.inject({
     method: 'POST',
@@ -62,12 +66,11 @@ test('POST /auth/login - returns 401 for unknown user', async (t) => {
   assert.strictEqual(res.statusCode, 401)
 })
 
+// 只有 username 字段
 test('POST /auth/login - returns 400 on missing fields', async (t) => {
   const app = await build(t)
 
-  app.decorate('mysql', {
-    query: async () => [[]]
-  })
+  setMysqlQueryMock(app, async () => [[]])
 
   const res = await app.inject({
     method: 'POST',

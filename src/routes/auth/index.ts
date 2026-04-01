@@ -34,7 +34,11 @@ interface AuthBody {
   password: string
 }
 
-const bodySchema = {
+interface RegisterBody extends AuthBody {
+  validation_code: string
+}
+
+const loginBodySchema = {
   type: 'object',
   required: ['username', 'password'],
   properties: {
@@ -43,14 +47,29 @@ const bodySchema = {
   }
 }
 
+const registerBodySchema = {
+  type: 'object',
+  required: ['username', 'password', 'validation_code'],
+  properties: {
+    username: { type: 'string', minLength: 3, maxLength: 50 },
+    password: { type: 'string', minLength: 6 },
+    validation_code: { type: 'string' }
+  }
+}
+
 const auth: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.throttleStore = new Map()
 
   // POST /auth/register
-  fastify.post<{ Body: AuthBody }>('/register', {
-    schema: { body: bodySchema }
+  fastify.post<{ Body: RegisterBody }>('/register', {
+    schema: { body: registerBodySchema }
   }, async (request, reply) => {
-    const { username, password } = request.body
+    const { username, password, validation_code } = request.body
+
+    if (validation_code !== process.env.REGISTER_VALIDATION_CODE) {
+      return reply.code(403).send({ error: 'Invalid validation code' })
+    }
+
 
     const existing = await findUserByUsername(fastify, username)
     if (existing) {
@@ -65,7 +84,7 @@ const auth: FastifyPluginAsync = async (fastify): Promise<void> => {
 
   // POST /auth/login
   fastify.post<{ Body: AuthBody }>('/login', {
-    schema: { body: bodySchema },
+    schema: { body: loginBodySchema },
     preHandler: [
       async (request, reply) => {
         // Simple in-memory throttle by IP, production should use Redis or similar
