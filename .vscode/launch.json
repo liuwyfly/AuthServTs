@@ -1,0 +1,66 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Fastify",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/fastify-cli/cli.js",
+            "args": ["start", "-l", "info", "-P", "dist/app.js"],
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ],
+            "sourceMaps": true,
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.env.example"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "npm test",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "test"
+            ],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.env.example",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "npm specific test",
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "--env-file=.env.test",
+                "--test",
+                "-r",
+                "ts-node/register",
+                "--test-name-pattern=${input:testNamePattern}",
+                "${input:testFile}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "testNamePattern",
+            "type": "promptString",
+            "description": "Test name pattern (example: POST /auth/login)",
+            "default": "POST /auth/login"
+        },
+        {
+            "id": "testFile",
+            "type": "promptString",
+            "description": "Test file path (example: test/routes/auth.test.ts)",
+            "default": "test/routes/auth.test.ts"
+        }
+    ]
+}
