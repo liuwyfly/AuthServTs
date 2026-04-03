@@ -1,0 +1,148 @@
+# Docker Swarm Stack for AuthServTs
+# Usage: docker stack deploy -c docker-compose.yml authserv
+#
+# NOTE: This stack uses an external Aliyun RDS MySQL database.
+#       No MySQL container is deployed inside the Swarm.
+
+networks:
+  authserv-network:
+    driver: overlay
+    attachable: true
+
+secrets:
+  jwt_secret:
+    external: true
+  mysql_user:
+    external: true
+  mysql_password:
+    external: true
+  register_validation_code:
+    external: true
+
+services:
+  # ------------------------------------------------------------------
+  # Reverse Proxy / Load Balancer
+  # ------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      # Uncomment the next 3 lines to enable HTTPS (requires certs or ACME)
+      # - "--entrypoints.websecure.address=:443"
+      # - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      # - "--certificatesresolvers.letsencrypt.acme.email=your-email@example.com"
+    ports:
+      - target: 80
+        published: 80
+        mode: host
+      # - target: 443
+      #   published: 443
+      #   mode: host
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+    networks:
+      - authserv-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service_name,environment"
+        env: "OS_VERSION"
+
+  # ------------------------------------------------------------------
+  # AuthServTs Application
+  # ------------------------------------------------------------------
+  app:
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/auth-serv:latest
+    environment:
+      - FASTIFY_PORT=3000
+      - FASTIFY_ADDRESS=0.0.0.0
+      - FASTIFY_LOG_LEVEL=info
+      # --- Aliyun RDS MySQL connection ---
+      - MYSQL_HOST=rm-f8z432717qy6hg59r.mysql.rds.aliyuncs.com
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=lagrange
+      # --- Secrets ---
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+      - MYSQL_USER_FILE=/run/secrets/mysql_user
+      - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+      - REGISTER_VALIDATION_CODE_FILE=/run/secrets/register_validation_code
+      # --- Timezone ---
+      - TZ=Asia/Shanghai
+    secrets:
+      - jwt_secret
+      - mysql_user
+      - mysql_password
+      - register_validation_code
+    networks:
+      - authserv-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+        monitor: 60s
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+        failure_action: pause
+        monitor: 60s
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      labels:
+        - "traefik.enable=true"
+        - 'traefik.http.routers.authserv.rule=HostRegexp(`{host:.+}`)'
+        - "traefik.http.routers.authserv.entrypoints=web"
+        - "traefik.http.services.authserv.loadbalancer.server.port=3000"
+        - "traefik.http.services.authserv.loadbalancer.healthcheck.path=/ping"
+        - "traefik.http.services.authserv.loadbalancer.healthcheck.interval=10s"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service_name,environment"
+        env: "OS_VERSION"
