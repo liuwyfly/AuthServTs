@@ -26,7 +26,7 @@ services:
   # Reverse Proxy / Load Balancer
   # ------------------------------------------------------------------
   traefik:
-    image: traefik:v3.1
+    image: traefik:v3.6.1
     environment:
       - DOCKER_API_VERSION=1.40
     command:
