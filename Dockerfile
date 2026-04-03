@@ -34,7 +34,8 @@ COPY --from=builder /app/dist ./dist
 
 # Copy entrypoint for Docker Secrets support
 COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh && \
+  chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Use non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
