@@ -12,6 +12,8 @@ networks:
 secrets:
   jwt_secret:
     external: true
+  mysql_host:
+    external: true
   mysql_user:
     external: true
   mysql_password:
@@ -84,11 +86,11 @@ services:
       - FASTIFY_ADDRESS=0.0.0.0
       - FASTIFY_LOG_LEVEL=info
       # --- Aliyun RDS MySQL connection ---
-      - MYSQL_HOST=rm-f8z432717qy6hg59r.mysql.rds.aliyuncs.com
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=lagrange
       # --- Secrets ---
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
+      - MYSQL_HOST_FILE=/run/secrets/mysql_host
       - MYSQL_USER_FILE=/run/secrets/mysql_user
       - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
       - REGISTER_VALIDATION_CODE_FILE=/run/secrets/register_validation_code
@@ -96,6 +98,7 @@ services:
       - TZ=Asia/Shanghai
     secrets:
       - jwt_secret
+      - mysql_host
       - mysql_user
       - mysql_password
       - register_validation_code
