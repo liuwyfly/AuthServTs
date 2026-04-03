@@ -138,7 +138,8 @@ services:
           memory: 256M
       labels:
         - "traefik.enable=true"
-        - 'traefik.http.routers.authserv.rule=HostRegexp(`{host:.+}`)'
+        # 匹配所有请求（包括直接 IP 访问）
+        - "traefik.http.routers.authserv.rule=PathPrefix(`/`)"
         - "traefik.http.routers.authserv.entrypoints=web"
         - "traefik.http.services.authserv.loadbalancer.server.port=3000"
         - "traefik.http.services.authserv.loadbalancer.healthcheck.path=/ping"
