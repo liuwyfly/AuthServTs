@@ -42,7 +42,7 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER fastify
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 EXPOSE 3000
 
