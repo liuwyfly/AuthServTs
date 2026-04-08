@@ -177,6 +177,7 @@ services:
       - FASTIFY_PORT=3000
       - FASTIFY_ADDRESS=0.0.0.0
       - FASTIFY_LOG_LEVEL=info
+      - FASTIFY_CLOSE_GRACE_DELAY=5000
       # --- Timezone ---
       - TZ=Asia/Shanghai
     networks:
@@ -187,6 +188,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+    stop_grace_period: 30s
     deploy:
       replicas: 2
       update_config:
