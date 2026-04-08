@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 # Multi-stage build for Fastify TypeScript app
 
-ARG NODE_VERSION=20
+ARG NODE_VERSION=node:24.14.1-alpine3.23
 
 # ====================
 # Stage 1: Build
 # ====================
-FROM node:${NODE_VERSION}-alpine AS builder
+FROM ${NODE_VERSION} AS builder
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN npm run build:ts
 # ====================
 # Stage 2: Production
 # ====================
-FROM node:${NODE_VERSION}-alpine AS production
+FROM ${NODE_VERSION} AS production
 
 WORKDIR /app
 
