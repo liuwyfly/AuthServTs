@@ -1,5 +1,5 @@
 # Docker Swarm Stack for AuthServTs
-# Usage: docker stack deploy -c docker-compose.yml authserv
+# Usage: docker stack deploy -c docker-compose.yml math-learning-serv
 #
 # NOTE: This stack uses an external Aliyun RDS MySQL database.
 #       No MySQL container is deployed inside the Swarm.
@@ -9,11 +9,9 @@ networks:
     driver: overlay
     attachable: true
 
-# Create directory for Traefik ACME storage on the host and set permissions
-# /letsencrypt
-# sudo chown -R lwy:lwy letsencrypt
-volumes:
-  traefik-acme:
+# Ensure cert files exist on the Swarm manager host:
+# /opt/webcert/ai100.me.pem
+# /opt/webcert/ai100.me.key
 
 secrets:
   jwt_secret:
@@ -39,11 +37,12 @@ services:
       - "--api.dashboard=false"
       - "--providers.swarm=true"
       - "--providers.swarm.exposedByDefault=false"
+      - "--providers.file.filename=/etc/traefik/dynamic/tls.yml"
+      - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.email=your-email@example.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
       - target: 80
         published: 80
@@ -56,9 +55,14 @@ services:
         source: /var/run/docker.sock
         target: /var/run/docker.sock
         read_only: true
-      - type: volume
-        source: traefik-acme
-        target: /letsencrypt
+      - type: bind
+        source: /opt/webcert
+        target: /certs
+        read_only: true
+      - type: bind
+        source: ./deploy/traefik/tls.yml
+        target: /etc/traefik/dynamic/tls.yml
+        read_only: true
     networks:
       - authserv-network
     deploy:
@@ -150,10 +154,9 @@ services:
       labels:
         - "traefik.enable=true"
         # 为 AuthServTs 增加统一访问前缀，便于同域名部署多个应用
-        - "traefik.http.routers.authserv.rule=HostRegexp(`{host:.+}`) && PathPrefix(`/auth-serv`)"
+        - "traefik.http.routers.authserv.rule=Host(`ai100.me`) && PathPrefix(`/auth-serv`)"
         - "traefik.http.routers.authserv.entrypoints=web,websecure"
         - "traefik.http.routers.authserv.tls=true"
-        - "traefik.http.routers.authserv.tls.certresolver=letsencrypt"
         - "traefik.http.routers.authserv.priority=100"
         - "traefik.http.routers.authserv.middlewares=authserv-strip-prefix"
         - "traefik.http.middlewares.authserv-strip-prefix.stripprefix.prefixes=/auth-serv"
@@ -216,10 +219,9 @@ services:
           memory: 256M
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.math-learning.rule=HostRegexp(`{host:.+}`) && PathPrefix(`/math-learning`)"
+        - "traefik.http.routers.math-learning.rule=Host(`ai100.me`) && PathPrefix(`/math-learning`)"
         - "traefik.http.routers.math-learning.entrypoints=web,websecure"
         - "traefik.http.routers.math-learning.tls=true"
-        - "traefik.http.routers.math-learning.tls.certresolver=letsencrypt"
         - "traefik.http.routers.math-learning.priority=100"
         - "traefik.http.routers.math-learning.middlewares=math-learning-strip-prefix"
         - "traefik.http.middlewares.math-learning-strip-prefix.stripprefix.prefixes=/math-learning"
