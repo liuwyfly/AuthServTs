@@ -1,4 +1,4 @@
 tls:
   certificates:
-    - certFile: /certs/ai100.me.pem
-      keyFile: /certs/ai100.me.key
+    - certFile: /certs/api.ai100.me.pem
+      keyFile: /certs/api.ai100.me.key
