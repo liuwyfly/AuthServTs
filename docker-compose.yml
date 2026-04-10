@@ -1,5 +1,5 @@
 # Docker Swarm Stack for AuthServTs
-# Usage: docker stack deploy -c docker-compose.yml math-learning-serv
+# Usage: docker stack deploy -c docker-compose.yml ai100
 #
 # NOTE: This stack uses an external Aliyun RDS MySQL database.
 #       No MySQL container is deployed inside the Swarm.
@@ -100,6 +100,7 @@ services:
       - FASTIFY_ADDRESS=0.0.0.0
       - FASTIFY_LOG_LEVEL=info
       - FASTIFY_CLOSE_GRACE_DELAY=5000
+      - FASTIFY_ROUTE_PREFIX=/auth-serv
       # --- Aliyun RDS MySQL connection ---
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=lagrange
@@ -120,7 +121,7 @@ services:
     networks:
       - authserv-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/auth-serv/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -153,15 +154,13 @@ services:
           memory: 256M
       labels:
         - "traefik.enable=true"
-        # 为 AuthServTs 增加统一访问前缀，便于同域名部署多个应用
-        - "traefik.http.routers.authserv.rule=Host(`ai100.me`) && PathPrefix(`/auth-serv`)"
+        # AuthServTs 自身处理路由前缀，Traefik 只负责按前缀转发。
+        - "traefik.http.routers.authserv.rule=Host(`api.ai100.me`) && PathPrefix(`/auth-serv`)"
         - "traefik.http.routers.authserv.entrypoints=web,websecure"
         - "traefik.http.routers.authserv.tls=true"
         - "traefik.http.routers.authserv.priority=100"
-        - "traefik.http.routers.authserv.middlewares=authserv-strip-prefix"
-        - "traefik.http.middlewares.authserv-strip-prefix.stripprefix.prefixes=/auth-serv"
         - "traefik.http.services.authserv.loadbalancer.server.port=3000"
-        - "traefik.http.services.authserv.loadbalancer.healthcheck.path=/ping"
+        - "traefik.http.services.authserv.loadbalancer.healthcheck.path=/auth-serv/ping"
         - "traefik.http.services.authserv.loadbalancer.healthcheck.interval=10s"
     logging:
       driver: "json-file"
@@ -181,6 +180,7 @@ services:
       - FASTIFY_ADDRESS=0.0.0.0
       - FASTIFY_LOG_LEVEL=info
       - FASTIFY_CLOSE_GRACE_DELAY=5000
+      - FASTIFY_ROUTE_PREFIX=/math-learning
       # --- Timezone ---
       - TZ=Asia/Shanghai
     networks:
@@ -219,7 +219,7 @@ services:
           memory: 256M
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.math-learning.rule=Host(`ai100.me`) && PathPrefix(`/math-learning`)"
+        - "traefik.http.routers.math-learning.rule=Host(`api.ai100.me`) && PathPrefix(`/math-learning`)"
         - "traefik.http.routers.math-learning.entrypoints=web,websecure"
         - "traefik.http.routers.math-learning.tls=true"
         - "traefik.http.routers.math-learning.priority=100"
