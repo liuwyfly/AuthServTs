@@ -9,10 +9,6 @@ networks:
     driver: overlay
     attachable: true
 
-# Ensure cert files exist on the Swarm manager host:
-# /opt/webcert/ai100.me.pem
-# /opt/webcert/ai100.me.key
-
 secrets:
   jwt_secret:
     external: true
