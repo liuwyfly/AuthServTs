@@ -90,7 +90,7 @@ services:
   # AuthServTs Application
   # ------------------------------------------------------------------
   auth-serv:
-    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/auth-serv:1.0.4
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/auth-serv:1.0.5
     environment:
       - FASTIFY_PORT=3000
       - FASTIFY_ADDRESS=0.0.0.0
@@ -170,7 +170,7 @@ services:
   # MathLearning Application
   # ------------------------------------------------------------------
   math-learning:
-    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.0.0
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.0.1
     environment:
       - FASTIFY_PORT=3000
       - FASTIFY_ADDRESS=0.0.0.0
