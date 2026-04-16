@@ -230,8 +230,6 @@ services:
         - "traefik.http.routers.math-learning.entrypoints=web,websecure"
         - "traefik.http.routers.math-learning.tls=true"
         - "traefik.http.routers.math-learning.priority=100"
-        - "traefik.http.routers.math-learning.middlewares=math-learning-strip-prefix"
-        - "traefik.http.middlewares.math-learning-strip-prefix.stripprefix.prefixes=/math-learning"
         - "traefik.http.services.math-learning.loadbalancer.server.port=3000"
         - "traefik.http.services.math-learning.loadbalancer.healthcheck.path=/math-learning/ping"
         - "traefik.http.services.math-learning.loadbalancer.healthcheck.interval=10s"
