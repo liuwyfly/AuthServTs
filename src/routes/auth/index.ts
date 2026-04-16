@@ -125,6 +125,15 @@ const auth: FastifyPluginAsync = async (fastify): Promise<void> => {
 
     return reply.send({ token, uid: user.uid })
   })
+
+  // GET /auth/test_login
+  fastify.get('/test_login', {
+    preHandler: [async (request, reply) => { await request.jwtVerify() }]
+  }, async (request, reply) => {
+    const user = request.user as { uid: number; username: string }
+    request.log.info({ uid: user.uid }, 'test_login: authenticated user')
+    return reply.send({ message: 'Token is valid', user })
+  })
 }
 
 export default auth

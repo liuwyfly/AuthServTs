@@ -16,7 +16,9 @@
             ],
             "sourceMaps": true,
             "cwd": "${workspaceFolder}",
-            "envFile": "${workspaceFolder}/.env.example"
+            "envFile": "${workspaceFolder}/.env.example",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         },
         {
             "type": "node",

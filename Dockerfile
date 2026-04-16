@@ -51,8 +51,8 @@ ENV FASTIFY_ADDRESS=0.0.0.0
 ENV FASTIFY_PORT=3000
 ENV NODE_ENV=production
 
-# Healthcheck using wget (available in busybox/alpine by default)
+# Healthcheck: respects FASTIFY_ROUTE_PREFIX (e.g. /auth-serv) at runtime
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:3000' + (process.env.FASTIFY_ROUTE_PREFIX || '') + '/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["npx", "fastify", "start", "-l", "info", "dist/app.js"]
+CMD ["sh", "-c", "exec npx fastify start -l \"${FASTIFY_LOG_LEVEL:-info}\" dist/app.js"]
