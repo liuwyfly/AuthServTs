@@ -99,7 +99,7 @@ services:
       - FASTIFY_ROUTE_PREFIX=/auth-serv
       # --- Aliyun RDS MySQL connection ---
       - MYSQL_PORT=3306
-      - MYSQL_DATABASE=lagrange
+      - MYSQL_DATABASE=easterly
       # --- Secrets ---
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
       - MYSQL_HOST_FILE=/run/secrets/mysql_host
