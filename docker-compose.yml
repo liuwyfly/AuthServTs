@@ -21,6 +21,10 @@ secrets:
   register_validation_code:
     external: true
 
+configs:
+  tls_config:
+    file: ./deploy/traefik/tls.yml
+
 services:
   # ------------------------------------------------------------------
   # Reverse Proxy / Load Balancer
@@ -55,10 +59,10 @@ services:
         source: /opt/webcert
         target: /certs
         read_only: true
-      - type: bind
-        source: ./deploy/traefik/tls.yml
+    configs:
+      - source: tls_config
         target: /etc/traefik/dynamic/tls.yml
-        read_only: true
+        mode: 0444
     networks:
       - ai100-me-network
     deploy:
