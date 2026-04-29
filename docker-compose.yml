@@ -5,7 +5,7 @@
 #       No MySQL container is deployed inside the Swarm.
 
 networks:
-  authserv-network:
+  ai100-me-network:
     driver: overlay
     attachable: true
 
@@ -60,7 +60,7 @@ services:
         target: /etc/traefik/dynamic/tls.yml
         read_only: true
     networks:
-      - authserv-network
+      - ai100-me-network
     deploy:
       replicas: 1
       placement:
@@ -115,7 +115,7 @@ services:
       - mysql_password
       - register_validation_code
     networks:
-      - authserv-network
+      - ai100-me-network
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/auth-serv/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
@@ -191,7 +191,7 @@ services:
       - mysql_user
       - mysql_password
     networks:
-      - authserv-network
+      - ai100-me-network
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/math-learning/ping', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
