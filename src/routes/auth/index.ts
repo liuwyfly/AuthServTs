@@ -82,6 +82,7 @@ const auth: FastifyPluginAsync = async (fastify): Promise<void> => {
     return reply.code(201).send({ message: 'User registered successfully', uid })
   })
 
+  // 通过用户名，密码登录，成功后返回 JWT token 和用户 ID
   // POST /auth/login
   fastify.post<{ Body: AuthBody }>('/login', {
     schema: { body: loginBodySchema },
