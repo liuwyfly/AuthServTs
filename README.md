@@ -25,6 +25,27 @@ For production mode
 
 Run the test cases.
 
+### `npm run prisma:generate`
+
+Generate Prisma Client from `prisma/schema.prisma`.
+
+### `npm run prisma:migrate`
+
+Create and apply local Prisma migrations.
+
+### `npm run prisma:studio`
+
+Open Prisma Studio to inspect and edit data.
+
+## Prisma ORM Setup
+
+1. Make sure `.env.example` (or your own `.env`) contains `DATABASE_URL`.
+2. Run `npm install`.
+3. Run `npm run prisma:generate`.
+4. Run `npm run prisma:migrate -- --name init` for first-time schema migration.
+
+Current Prisma schema is in `prisma/schema.prisma` and maps to the existing `users` table.
+
 ## Learn More
 
 To learn Fastify, check out the [Fastify documentation](https://fastify.dev/docs/latest/).

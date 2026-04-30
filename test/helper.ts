@@ -13,12 +13,15 @@ const AppPath = path.join(__dirname, '..', 'src', 'app.ts')
 // needed for testing the application
 function config () {
   return {
-    skipOverride: true // Register our application with fastify-plugin
+    skipOverride: true, // Register our application with fastify-plugin
+    routePrefix: ''
   }
 }
 
 // Automatically build and tear down our instance
 async function build (t: TestContext) {
+  process.env.FASTIFY_ROUTE_PREFIX = ''
+
   // you can set all the options supported by the fastify CLI command
   const argv = [AppPath]
 

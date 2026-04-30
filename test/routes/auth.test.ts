@@ -2,27 +2,32 @@ import { test } from 'node:test'
 import * as assert from 'node:assert'
 import { build } from '../helper'
 
-function setMysqlQueryMock (app: any, query: (sql: string, values?: unknown[]) => Promise<unknown>) {
-  app.mysql = {
-    ...app.mysql,
-    query
+function setPrismaUserMock (app: any, overrides: {
+  findUnique?: (args?: unknown) => Promise<unknown>
+  create?: (args?: unknown) => Promise<unknown>
+}) {
+  app.prisma = {
+    ...app.prisma,
+    user: {
+      ...app.prisma.user,
+      ...overrides
+    }
   }
 }
 
-// These tests use dependency injection via fastify.mysql mock.
-// They assume the MySQL plugin is replaceable via skipOverride,
+// These tests use dependency injection via fastify.prisma mock.
+// They assume the Prisma plugin is replaceable via skipOverride,
 // or that a real DB connection is available (integration test).
 //
-// For unit-level testing without a live DB, mock fastify.mysql on the instance:
-//   app.decorate('mysql', { query: async () => [[]] })
+// For unit-level testing without a live DB, mock fastify.prisma on the instance:
+//   app.decorate('prisma', { user: { findUnique: async () => null, create: async () => ({}) } })
 
 test('POST /auth/register - returns 201 on success', async (t) => {
   const app = await build(t)
 
-  // Override query only; avoid redecorating after instance start.
-  setMysqlQueryMock(app, async (sql: string) => {
-    if (sql.startsWith('SELECT')) return [[]] // no existing user
-    return [{ insertId: 1 }]
+  setPrismaUserMock(app, {
+    findUnique: async () => null,
+    create: async () => ({ id: 1 })
   })
 
   const res = await app.inject({
@@ -40,7 +45,9 @@ test('POST /auth/register - returns 201 on success', async (t) => {
 test('POST /auth/register - returns 409 when username taken', async (t) => {
   const app = await build(t)
 
-  setMysqlQueryMock(app, async () => [[{ id: 1, username: 'testuser', password: 'hashed' }]])
+  setPrismaUserMock(app, {
+    findUnique: async () => ({ id: 1, uid: 'existing_uid', username: 'testuser', password: 'hashed' })
+  })
 
   const res = await app.inject({
     method: 'POST',
@@ -55,7 +62,9 @@ test('POST /auth/register - returns 409 when username taken', async (t) => {
 test('POST /auth/login - returns 401 for unknown user', async (t) => {
   const app = await build(t)
 
-  setMysqlQueryMock(app, async () => [[]]) // no user found
+  setPrismaUserMock(app, {
+    findUnique: async () => null
+  }) // no user found
 
   const res = await app.inject({
     method: 'POST',
@@ -70,7 +79,9 @@ test('POST /auth/login - returns 401 for unknown user', async (t) => {
 test('POST /auth/login - returns 400 on missing fields', async (t) => {
   const app = await build(t)
 
-  setMysqlQueryMock(app, async () => [[]])
+  setPrismaUserMock(app, {
+    findUnique: async () => null
+  })
 
   const res = await app.inject({
     method: 'POST',

@@ -1,8 +1,7 @@
-import { RowDataPacket } from 'mysql2'
 import { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
 
-export interface UserRow extends RowDataPacket {
+export interface UserRow {
   id: number
   uid: string
   username: string
@@ -13,11 +12,17 @@ export async function findUserByUsername (
   fastify: FastifyInstance,
   username: string
 ): Promise<UserRow | null> {
-  const [rows] = await fastify.mysql.query<UserRow[]>(
-    'SELECT id, uid, username, password FROM users WHERE username = ?',
-    [username]
-  )
-  return rows[0] ?? null
+  const user = await fastify.prisma.user.findUnique({
+    where: { username },
+    select: {
+      id: true,
+      uid: true,
+      username: true,
+      password: true
+    }
+  })
+
+  return user
 }
 
 export async function createUser (
@@ -26,9 +31,13 @@ export async function createUser (
   hashedPassword: string
 ): Promise<string> {
   const uid = randomUUID().replace(/-/g, '')
-  await fastify.mysql.query(
-    'INSERT INTO users (uid, username, password) VALUES (?, ?, ?)',
-    [uid, username, hashedPassword]
-  )
+  await fastify.prisma.user.create({
+    data: {
+      uid,
+      username,
+      password: hashedPassword
+    }
+  })
+
   return uid
 }

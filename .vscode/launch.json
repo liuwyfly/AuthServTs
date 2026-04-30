@@ -16,7 +16,7 @@
             ],
             "sourceMaps": true,
             "cwd": "${workspaceFolder}",
-            "envFile": "${workspaceFolder}/.env.example",
+            "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
         },
@@ -29,7 +29,7 @@
                 "test"
             ],
             "cwd": "${workspaceFolder}",
-            "envFile": "${workspaceFolder}/.env.example",
+            "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
         },
