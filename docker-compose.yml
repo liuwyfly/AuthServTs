@@ -174,7 +174,7 @@ services:
   # MathLearning Application
   # ------------------------------------------------------------------
   math-learning:
-    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.0.5
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.0.6
     environment:
       - FASTIFY_PORT=3000
       - FASTIFY_ADDRESS=0.0.0.0
