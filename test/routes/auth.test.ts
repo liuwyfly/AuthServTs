@@ -91,3 +91,21 @@ test('POST /auth/login - returns 400 on missing fields', async (t) => {
 
   assert.strictEqual(res.statusCode, 400)
 })
+
+test('OPTIONS /auth/login - returns CORS preflight headers', async (t) => {
+  const app = await build(t)
+
+  const res = await app.inject({
+    method: 'OPTIONS',
+    url: '/auth/login',
+    headers: {
+      origin: 'http://localhost:5173',
+      'access-control-request-method': 'POST',
+      'access-control-request-headers': 'content-type'
+    }
+  })
+
+  assert.strictEqual(res.statusCode, 204)
+  assert.strictEqual(res.headers['access-control-allow-origin'], 'http://localhost:5173')
+  assert.match(String(res.headers['access-control-allow-methods']), /POST/)
+})

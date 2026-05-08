@@ -112,6 +112,8 @@ services:
       - REGISTER_VALIDATION_CODE_FILE=/run/secrets/register_validation_code
       # --- Timezone ---
       - TZ=Asia/Shanghai
+      # --- CORS ---
+      - CORS_ORIGIN=https://ai100.me,https://www.ai100.me
     secrets:
       - jwt_secret
       - mysql_host

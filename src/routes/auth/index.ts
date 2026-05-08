@@ -111,12 +111,12 @@ const auth: FastifyPluginAsync = async (fastify): Promise<void> => {
 
     const user = await findUserByUsername(fastify, username)
     if (!user) {
-      return reply.code(401).send({ error: 'Invalid username or password' })
+      return reply.code(401).send({ message: 'Invalid username or password' })
     }
 
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) {
-      return reply.code(401).send({ error: 'Invalid username or password' })
+      return reply.code(401).send({ message: 'Invalid username or password' })
     }
 
     const token = fastify.jwt.sign(
