@@ -10,7 +10,7 @@
             ],
             "program": "${workspaceFolder}/node_modules/fastify-cli/cli.js",
             "args": ["start", "-l", "info", "-P", "dist/app.js"],
-            "preLaunchTask": "tsc: build - tsconfig.json",
+            "preLaunchTask": "build",
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
             ],

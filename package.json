@@ -9,7 +9,7 @@
   "scripts": {
     "test": "npm run build:ts && tsc -p test/tsconfig.json && c8 node --env-file=.env.test --test -r ts-node/register \"test/**/*.ts\"",
     "start": "npm run build:ts && node --env-file=.env.example ./node_modules/fastify-cli/cli.js start -l info dist/app.js",
-    "build:ts": "tsc",
+    "build:ts": "tsc && node -e \"require('fs').cpSync('src/generated/prisma-client', 'dist/generated/prisma-client', {recursive: true, force: true})\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
