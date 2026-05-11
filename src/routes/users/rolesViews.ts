@@ -1,5 +1,25 @@
 import { type FastifyInstance, type FastifyRequest, type FastifyReply } from 'fastify'
 
+// 根据 uid 判断用户是否具有 super_admin 角色
+async function hasSuperAdminRole (fastify: FastifyInstance, uid: string): Promise<boolean> {
+  const userRoles = await fastify.prisma.userRole.findMany({
+    where: { uid }
+  })
+
+  if (userRoles.length === 0) {
+    return false
+  }
+
+  const superAdminRole = await fastify.prisma.role.findFirst({
+    where: {
+      id: { in: userRoles.map(ur => ur.role_id) },
+      key: 'super_admin'
+    }
+  })
+
+  return superAdminRole != null
+}
+
 export interface RoleBody {
   name: string
   key: string
@@ -31,6 +51,7 @@ export async function listRolesHandler (
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
+  await request.jwtVerify()
   const roles = await request.server.prisma.role.findMany({
     orderBy: { id: 'asc' }
   })
@@ -42,6 +63,7 @@ export async function getRoleHandler (
   request: FastifyRequest<{ Params: RoleParams }>,
   reply: FastifyReply
 ): Promise<void> {
+  await request.jwtVerify()
   const id = parseInt(request.params.id, 10)
   const role = await request.server.prisma.role.findUnique({
     where: { id }
@@ -60,7 +82,14 @@ export async function createRoleHandler (
   request: FastifyRequest<{ Body: RoleBody }>,
   reply: FastifyReply
 ): Promise<void> {
+  await request.jwtVerify()
   const { name, key } = request.body
+  const { uid } = request.user as { uid: string; username: string }
+
+  const isSuperAdmin = await hasSuperAdminRole(this, uid)
+  if (!isSuperAdmin) {
+    return reply.code(403).send({ error: 'Forbidden: super_admin role required' })
+  }
 
   const existingRole = await this.prisma.role.findFirst({
     where: {
@@ -85,6 +114,7 @@ export async function updateRoleHandler (
   request: FastifyRequest<{ Params: RoleParams; Body: RoleBody }>,
   reply: FastifyReply
 ): Promise<void> {
+  await request.jwtVerify()
   const id = parseInt(request.params.id, 10)
   const { name, key } = request.body
 
@@ -109,6 +139,7 @@ export async function deleteRoleHandler (
   request: FastifyRequest<{ Params: RoleParams }>,
   reply: FastifyReply
 ): Promise<void> {
+  await request.jwtVerify()
   const id = parseInt(request.params.id, 10)
 
   const existing = await request.server.prisma.role.findUnique({
