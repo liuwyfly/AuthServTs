@@ -20,7 +20,8 @@ model User {
 
 model Role {
   id        Int        @id @default(autoincrement()) @db.UnsignedInt
-  name      String     @db.VarChar(64)
+  name      String     @unique @db.VarChar(64)
+  key       String     @unique @db.VarChar(64)
   createdAt DateTime   @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt DateTime   @updatedAt @map("updated_at") @db.DateTime(0)
 

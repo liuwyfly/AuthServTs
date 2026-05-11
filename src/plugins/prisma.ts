@@ -19,8 +19,22 @@ function buildDatasourceUrl (): string {
 export default fp(async (fastify) => {
   const adapter = new PrismaMariaDb(buildDatasourceUrl())
   const prisma = new PrismaClient({
-    adapter
+    adapter,
+    log: process.env.NODE_ENV === 'development'
+      ? [
+          { level: 'query', emit: 'event' },
+          { level: 'info', emit: 'stdout' },
+          { level: 'warn', emit: 'stdout' },
+          { level: 'error', emit: 'stdout' }
+        ]
+      : ['error']
   })
+
+  if (process.env.NODE_ENV === 'development') {
+    prisma.$on('query', (e) => {
+      console.log(`[Prisma] ${e.query} | params: ${e.params} | ${e.duration}ms`)
+    })
+  }
 
   fastify.decorate('prisma', prisma)
 

@@ -40,9 +40,10 @@ Open Prisma Studio to inspect and edit data.
 ## Prisma ORM Setup
 
 1. Make sure `.env.example` (or your own `.env`) contains `DATABASE_URL`.
-2. Run `npm install`.
-3. Run `npm run prisma:generate`.
-4. Run `npm run prisma:migrate -- --name init` for first-time schema migration.
+2. If your application DB user has limited privileges, also set `SHADOW_DATABASE_URL` to a MySQL user that can create/drop indexes and tables. Prisma Migrate uses this for the shadow database only.
+3. Run `npm install`.
+4. Run `npm run prisma:generate`.
+5. Run `npm run prisma:migrate -- --name init` for first-time schema migration.
 
 Current Prisma schema is in `prisma/schema.prisma` and maps to the existing `users` table.
 
