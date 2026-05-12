@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin'
 import { PrismaClient } from '../generated/prisma-client'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+import { FastifyPluginAsync } from 'fastify'
 
 function buildDatasourceUrl (): string {
   if (process.env.DATABASE_URL != null && process.env.DATABASE_URL !== '') {
@@ -16,8 +17,10 @@ function buildDatasourceUrl (): string {
   return `mysql://${user}:${password}@${host}:${port}/${database}`
 }
 
-export default fp(async (fastify) => {
+
+const prismaPlugin: FastifyPluginAsync = async (fastify) => {
   const adapter = new PrismaMariaDb(buildDatasourceUrl())
+
   const prisma = new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development'
@@ -41,7 +44,9 @@ export default fp(async (fastify) => {
   fastify.addHook('onClose', async (instance) => {
     await instance.prisma.$disconnect()
   })
-})
+}
+
+export default fp(prismaPlugin, { name: 'prisma' })
 
 declare module 'fastify' {
   interface FastifyInstance {

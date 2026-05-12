@@ -194,6 +194,8 @@ services:
       - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
       # --- Timezone ---
       - TZ=Asia/Shanghai
+      # --- CORS ---
+      - CORS_ORIGIN=https://ai100.me,https://www.ai100.me
     secrets:
       - mysql_host
       - mysql_user
