@@ -8,7 +8,7 @@ import {
   type RegisterBody,
   type AuthBody
 } from './emailLoginViews'
-import { AuthorizationByRoleHandler } from './authorizationViews'
+import { AuthorizationByRoleHandler, authorizationRoleBodySchema, type AuthorizationRoleBody } from './authorizationViews'
 
 // 这是 TypeScript 的**声明合并（Declaration Merging）**机制。
 
@@ -51,9 +51,11 @@ const auth: FastifyPluginAsync = async (fastify): Promise<void> => {
     preHandler: [loginThrottlePreHandler]
   }, loginHandler)
 
-  // POST /auth/authorizationByRole
-  fastify.post('/authorizationByRole', {
-    schema: {}
+  // 通过 Header Authorization jwt token 取得 uid
+  // 判断用户是否具有某个角色
+  // POST /auth/authorization_role
+  fastify.post<{ Body: AuthorizationRoleBody }>('/authorization_role', {
+    schema: { body: authorizationRoleBodySchema }
   }, AuthorizationByRoleHandler)
 }
 
