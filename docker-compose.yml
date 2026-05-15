@@ -18,6 +18,8 @@ secrets:
     external: true
   mysql_password:
     external: true
+  oss_access_key_secret:
+    external: true
   register_validation_code:
     external: true
 
@@ -188,18 +190,23 @@ services:
       - MYSQL_DATABASE=lagrange
       # --- Aliyun OSS ---
       - OSS_REGION=oss-cn-wulanchabu-internal
+      - OSS_ACCESS_KEY_ID=LTAI5t78xt8DWVCKJYcHkKiX
       # --- Secrets ---
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
       - MYSQL_HOST_FILE=/run/secrets/mysql_host
       - MYSQL_USER_FILE=/run/secrets/mysql_user
       - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+      - OSS_ACCESS_KEY_SECRET_FILE=/run/secrets/oss_access_key_secret
       # --- Timezone ---
       - TZ=Asia/Shanghai
       # --- CORS ---
       - CORS_ORIGIN=https://ai100.me,https://www.ai100.me,http://localhost:5174
     secrets:
+      - jwt_secret
       - mysql_host
       - mysql_user
       - mysql_password
+      - oss_access_key_secret
     networks:
       - ai100-me-network
     healthcheck:
