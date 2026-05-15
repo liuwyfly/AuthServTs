@@ -1,22 +1,23 @@
 import { type FastifyInstance, type FastifyRequest, type FastifyReply } from 'fastify'
 
 export interface AuthorizationRoleBody {
-  role: string
+  roles: string
 }
 
 export const authorizationRoleBodySchema = {
   type: 'object',
-  required: ['role'],
+  required: ['roles'],
   properties: {
-    role: { type: 'string' }
+    roles: { type: 'string' }
   }
 }
 
 /*
   Header Authorization 必须
+  多个角色用逗号(,)分隔
   参数
   {
-    "role": "content_admin"
+    "roles": "content_admin"
   }
     
   返回
@@ -39,10 +40,10 @@ export async function AuthorizationByRoleHandler (
   const user = request.user as { uid: string; username: string }
 
   // log uid
-  this.log.info({ uid: user.uid, role: request.body.role }, 'authorization_role: authenticated user')
+  this.log.info({ uid: user.uid, roles: request.body.roles }, 'authorization_role: authenticated user')
 
-  const { role } = request.body
-  const requiredRoles = role.split(',').map(r => r.trim()).filter(r => r.length > 0)
+  const { roles } = request.body
+  const requiredRoles = roles.split(',').map(r => r.trim()).filter(r => r.length > 0)
 
   if (requiredRoles.length === 0) {
     return reply.code(400).send({ error: 'Invalid role parameter' })
