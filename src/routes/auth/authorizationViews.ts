@@ -1,4 +1,5 @@
 import { type FastifyInstance, type FastifyRequest, type FastifyReply } from 'fastify'
+import { SUPER_ADMIN } from './constants'
 
 export interface AuthorizationRoleBody {
   roles: string
@@ -62,8 +63,8 @@ export async function AuthorizationByRoleHandler (
   `
 
   for (const ur of userRoles) {
-    if (ur.key === 'super_admin') {
-      return reply.send({ authorized: true, role: 'super_admin' })
+    if (ur.key === SUPER_ADMIN) {
+      return reply.send({ authorized: true, role: SUPER_ADMIN })
     }
 
     if (requiredRoles.includes(ur.key)) {
@@ -71,5 +72,5 @@ export async function AuthorizationByRoleHandler (
     }
   }
 
-  return reply.code(403).send({ authorized: false, error: 'Forbidden: required role not found' })
+  return reply.send({ authorized: false, message: 'The user does not have the any roles!' })
 }
