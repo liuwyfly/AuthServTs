@@ -113,7 +113,7 @@ services:
       - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
       - REGISTER_VALIDATION_CODE_FILE=/run/secrets/register_validation_code
       # --- Timezone ---
-      - TZ=Asia/Shanghai
+      - TZ=UTC
       # --- CORS ---
       - CORS_ORIGIN=https://ai100.me,https://www.ai100.me,http://localhost:5174
     secrets:
@@ -178,7 +178,7 @@ services:
   # MathLearning Application
   # ------------------------------------------------------------------
   math-learning:
-    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.0.10
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.0.11
     environment:
       - FASTIFY_PORT=3000
       - FASTIFY_ADDRESS=0.0.0.0
@@ -198,7 +198,7 @@ services:
       - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
       - OSS_ACCESS_KEY_SECRET_FILE=/run/secrets/oss_access_key_secret
       # --- Timezone ---
-      - TZ=Asia/Shanghai
+      - TZ=UTC
       # --- CORS ---
       - CORS_ORIGIN=https://ai100.me,https://www.ai100.me,http://localhost:5174
     secrets:
