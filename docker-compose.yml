@@ -189,7 +189,7 @@ services:
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=lagrange
       # --- Aliyun OSS ---
-      - OSS_REGION=oss-cn-wulanchabu-internal
+      - OSS_REGION=oss-cn-wulanchabu
       - OSS_ACCESS_KEY_ID=LTAI5t78xt8DWVCKJYcHkKiX
       # --- Secrets ---
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
