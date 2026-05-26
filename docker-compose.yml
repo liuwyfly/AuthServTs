@@ -178,7 +178,7 @@ services:
   # MathLearning Application
   # ------------------------------------------------------------------
   math-learning:
-    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.0.14
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.0.15
     environment:
       - FASTIFY_PORT=3000
       - FASTIFY_ADDRESS=0.0.0.0
@@ -201,6 +201,8 @@ services:
       - TZ=Asia/Shanghai
       # --- CORS ---
       - CORS_ORIGIN=https://ai100.me,https://www.ai100.me,http://localhost:5174
+      # --- Service URL AuthServ ---
+      - AUTH_SERVICE_URL=http://auth-serv:3000
     secrets:
       - jwt_secret
       - mysql_host
