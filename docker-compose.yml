@@ -268,6 +268,7 @@ services:
   love-in-love:
     image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/love-in-love:1.0.3
     environment:
+      - DEBUG=on
       - SERVER_PORT=8080
       # --- Secrets ---
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
