@@ -259,3 +259,74 @@ services:
         max-file: "3"
         labels: "service_name,environment"
         env: "OS_VERSION"
+
+  # ------------------------------------------------------------------
+  # Love-in-Love Backend Service
+  # ------------------------------------------------------------------
+  love-in-love:
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/love-in-love:1.0.1
+    environment:
+      - SERVER_PORT=8080
+      # --- Secrets ---
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+      - MYSQL_URL_LNL_FILE=/run/secrets/mysql_url_lnl
+      - MYSQL_USER_FILE=/run/secrets/mysql_user
+      - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+      # --- Timezone ---
+      - TZ=Asia/Shanghai
+    secrets:
+      - jwt_secret
+      - mysql_url_lnl
+      - mysql_user
+      - mysql_password
+    networks:
+      - ai100-me-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/love-in-love/backend/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    stop_grace_period: 30s
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+        monitor: 60s
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+        failure_action: pause
+        monitor: 60s
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.loveinlove.rule=Host(`api.ai100.me`) && PathPrefix(`/love-in-love/backend`)"
+        - "traefik.http.routers.loveinlove.entrypoints=web,websecure"
+        - "traefik.http.routers.loveinlove.tls=true"
+        - "traefik.http.routers.loveinlove.priority=100"
+        - "traefik.http.services.loveinlove.loadbalancer.server.port=8080"
+        - "traefik.http.services.loveinlove.loadbalancer.healthcheck.path=/love-in-love/backend/ping"
+        - "traefik.http.services.loveinlove.loadbalancer.healthcheck.interval=10s"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service_name,environment"
+        env: "OS_VERSION"
+    
