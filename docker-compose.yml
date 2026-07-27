@@ -22,6 +22,8 @@ secrets:
     external: true
   register_validation_code:
     external: true
+  mysql_url_lnl:
+    external: true
 
 configs:
   tls_config:
