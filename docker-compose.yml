@@ -266,7 +266,7 @@ services:
   # Love-in-Love Backend Service
   # ------------------------------------------------------------------
   love-in-love:
-    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/love-in-love:1.0.12
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/love-in-love:1.0.13
     environment:
       - DEBUG=on
       - SERVER_PORT=8080
