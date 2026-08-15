@@ -111,6 +111,8 @@ services:
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=easterly
       - PRISMA_CONNECTION_LIMIT=2
+      # --- 微信 app id ---
+      - WECHAT_APP_ID=wxc0bce732a4583a46
       # --- Secrets ---
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
       - MYSQL_HOST_FILE=/run/secrets/mysql_host
