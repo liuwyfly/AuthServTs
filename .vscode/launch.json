@@ -9,7 +9,7 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/node_modules/fastify-cli/cli.js",
-            "args": ["start", "-l", "info", "-P", "--port", "3000", "dist/app.js"],
+            "args": ["start", "-l", "info", "-P", "--port", "3001", "dist/app.js"],
             "preLaunchTask": "build",
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
@@ -47,6 +47,21 @@
                 "${input:testFile}"
             ],
             "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Prisma migrate dev",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "prisma",
+                "migrate",
+                "deploy"
+            ],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
         }

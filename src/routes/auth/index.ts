@@ -9,6 +9,7 @@ import {
   type AuthBody
 } from './emailLoginViews'
 import { AuthorizationByRoleHandler, authorizationRoleBodySchema, type AuthorizationRoleBody } from './authorizationViews'
+import { wechatCodeHandler, wxCodeBodySchema, type WxCodeBody } from './wechatCodeViews'
 
 // 这是 TypeScript 的**声明合并（Declaration Merging）**机制。
 
@@ -57,6 +58,11 @@ const auth: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.post<{ Body: AuthorizationRoleBody }>('/authorization_role', {
     schema: { body: authorizationRoleBodySchema }
   }, AuthorizationByRoleHandler)
+
+  // 微信登录 通过 code 获取 access_token
+  fastify.post<{ Body: WxCodeBody }>('/wechat_code', {
+    schema: { body: wxCodeBodySchema }
+  }, wechatCodeHandler)
 }
 
 export default auth

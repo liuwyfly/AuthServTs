@@ -108,6 +108,7 @@ services:
       # --- Aliyun RDS MySQL connection ---
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=easterly
+      - PRISMA_CONNECTION_LIMIT=2
       # --- Secrets ---
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
       - MYSQL_HOST_FILE=/run/secrets/mysql_host
@@ -190,6 +191,7 @@ services:
       # --- Aliyun RDS MySQL connection ---
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=lagrange
+      - PRISMA_CONNECTION_LIMIT=2
       # --- Aliyun OSS ---
       - OSS_REGION=oss-cn-wulanchabu
       - OSS_ACCESS_KEY_ID=LTAI5t78xt8DWVCKJYcHkKiX
