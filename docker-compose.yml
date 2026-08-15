@@ -100,7 +100,7 @@ services:
   # AuthServTs Application
   # ------------------------------------------------------------------
   auth-serv:
-    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/auth-serv:1.0.10
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/auth-serv:1.0.11
     environment:
       - FASTIFY_PORT=3000
       - FASTIFY_ADDRESS=0.0.0.0
