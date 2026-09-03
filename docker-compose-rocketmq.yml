@@ -1,0 +1,151 @@
+# Docker Swarm Stack for RocketMQ 5.3.2
+# Usage: docker stack deploy --with-registry-auth -c docker-compose-rocketmq.yml rocketmq
+#
+# 包含: rocketmq namesrv / rocketmq broker / rocketmq-dashboard(带登录密码)
+#
+# 网络说明:
+#   本 stack 与主 stack (ai100) 部署在同一个 Swarm，
+#   所有服务加入 ai100 创建的共享网络 ai100_ai100-me-network (external)。
+#
+# Traefik 说明:
+#   复用 ai100 stack 的 traefik (已占用 80/443)，本 stack 不再部署 traefik。
+#   dashboard 已带 traefik labels，会被 ai100 的 traefik 自动发现。
+
+networks:
+  ai100-me-network:
+    external: true
+    name: ai100_ai100-me-network
+
+configs:
+  rocketmq_broker_conf:
+    file: ./deploy/rocketmq/broker.conf
+  rocketmq_dashboard_users:
+    file: ./deploy/rocketmq/users.properties
+
+volumes:
+  rocketmq-broker-store:
+
+services:
+  # ------------------------------------------------------------------
+  # RocketMQ NameServer
+  # ------------------------------------------------------------------
+  rmq-namesrv:
+    image: apache/rocketmq:5.3.2
+    command: sh mqnamesrv
+    environment:
+      # 覆盖默认 JVM 堆大小（默认 4g，太大）
+      - JAVA_OPT=-server -Xms512m -Xmx512m -Xmn256m
+      - TZ=Asia/Shanghai
+    networks:
+      ai100-me-network:
+        # 固定别名：无论 stack 名是什么，同网络内的客户端都可用该名字访问
+        aliases:
+          - rocketmq-namesrv
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service_name,environment"
+        env: "OS_VERSION"
+
+  # ------------------------------------------------------------------
+  # RocketMQ Broker (5.x 开启 proxy 模式)
+  # ------------------------------------------------------------------
+  rmq-broker:
+    image: apache/rocketmq:5.3.2
+    command: sh mqbroker -c /etc/rocketmq/broker.conf --enable-proxy
+    environment:
+      - JAVA_OPT=-server -Xms1g -Xmx1g -Xmn512m
+      - TZ=Asia/Shanghai
+    volumes:
+      - rocketmq-broker-store:/home/rocketmq/store
+    configs:
+      - source: rocketmq_broker_conf
+        target: /etc/rocketmq/broker.conf
+        mode: 0444
+    networks:
+      ai100-me-network:
+        aliases:
+          - rocketmq-broker
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1536M
+        reservations:
+          cpus: '0.50'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service_name,environment"
+        env: "OS_VERSION"
+
+  # ------------------------------------------------------------------
+  # RocketMQ Dashboard (开启登录密码访问)
+  # ------------------------------------------------------------------
+  rmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    environment:
+      # loginRequired=true 开启登录；用户列表来自挂载的 users.properties
+      # context-path 与 traefik 的 PathPrefix 对应，应用自身在该前缀下提供服务
+      - JAVA_OPTS=-Drocketmq.config.namesrvAddr=rocketmq-namesrv:9876 -Drocketmq.config.loginRequired=true -Drocketmq.config.dataPath=/tmp/rocketmq-console/data -Dserver.servlet.context-path=/rocketmq-dashboard
+      - TZ=Asia/Shanghai
+    configs:
+      - source: rocketmq_dashboard_users
+        target: /tmp/rocketmq-console/data/users.properties
+        mode: 0444
+    networks:
+      - ai100-me-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      labels:
+        - "traefik.enable=true"
+        # 与主 stack 其他服务一致，挂在 api.ai100.me 的路径前缀下
+        - "traefik.http.routers.rocketmq-dashboard.rule=Host(`api.ai100.me`) && PathPrefix(`/rocketmq-dashboard`)"
+        - "traefik.http.routers.rocketmq-dashboard.entrypoints=web,websecure"
+        - "traefik.http.routers.rocketmq-dashboard.tls=true"
+        - "traefik.http.routers.rocketmq-dashboard.priority=100"
+        - "traefik.http.services.rocketmq-dashboard.loadbalancer.server.port=8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service_name,environment"
+        env: "OS_VERSION"

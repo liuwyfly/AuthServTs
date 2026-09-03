@@ -1,0 +1,19 @@
+# RocketMQ 本地测试 override（与主文件合并使用，不影响生产配置）
+#
+# 前置条件:
+#   docker swarm init   (如果本地还没初始化 Swarm)
+#   docker network create --driver overlay --attachable ai100_ai100-me-network
+#
+# 部署:
+#   docker stack deploy -c docker-compose-rocketmq.yml -c docker-compose-rocketmq.local.yml rocketmq
+#
+# 访问 dashboard:
+#   http://localhost:8080/rocketmq-dashboard
+#   (不走 traefik，直连容器端口；context-path 生效，路径前缀必须带)
+
+services:
+  rmq-dashboard:
+    ports:
+      - target: 8080
+        published: 8081
+        mode: ingress
