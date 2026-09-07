@@ -68,12 +68,14 @@ services:
   # ------------------------------------------------------------------
   rmq-broker:
     image: apache/rocketmq:5.3.2
-    command: sh mqbroker -c /etc/rocketmq/broker.conf --enable-proxy
+    # 注意: 5.3.x 开启 --enable-proxy 后，proxy 内置客户端不会读取 broker.conf 里的
+    # namesrvAddr，必须用 -n 显式指定，否则启动报 "NamesrvAddr is not configured"
+    command: sh mqbroker -c /etc/rocketmq/broker.conf -n rocketmq-namesrv:9876 --enable-proxy
     environment:
       - JAVA_OPT=-server -Xms1g -Xmx1g -Xmn512m
       - TZ=Asia/Shanghai
     volumes:
-      - rocketmq-broker-store:/home/rocketmq/store
+      - rocketmq-broker-store:/home/volumes/store
     configs:
       - source: rocketmq_broker_conf
         target: /etc/rocketmq/broker.conf
@@ -111,8 +113,9 @@ services:
     image: apacherocketmq/rocketmq-dashboard:latest
     environment:
       # loginRequired=true 开启登录；用户列表来自挂载的 users.properties
-      # context-path 与 traefik 的 PathPrefix 对应，应用自身在该前缀下提供服务
-      - JAVA_OPTS=-Drocketmq.config.namesrvAddr=rocketmq-namesrv:9876 -Drocketmq.config.loginRequired=true -Drocketmq.config.dataPath=/tmp/rocketmq-console/data -Dserver.servlet.context-path=/rocketmq-dashboard
+      # 注意: 不设 context-path —— dashboard 前端静态资源用绝对路径 /static/...，
+      # 挂子路径会 404，所以生产用独立域名 rmq.ai100.me 根路径提供服务
+      - JAVA_OPTS=-Drocketmq.config.namesrvAddr=rocketmq-namesrv:9876 -Drocketmq.config.loginRequired=true -Drocketmq.config.dataPath=/tmp/rocketmq-console/data
       - TZ=Asia/Shanghai
     configs:
       - source: rocketmq_dashboard_users
@@ -136,12 +139,13 @@ services:
           memory: 256M
       labels:
         - "traefik.enable=true"
-        # 与主 stack 其他服务一致，挂在 api.ai100.me 的路径前缀下
-        - "traefik.http.routers.rocketmq-dashboard.rule=Host(`api.ai100.me`) && PathPrefix(`/rocketmq-dashboard`)"
+        # 独立域名根路径提供服务（前端静态资源是绝对路径，不能用 PathPrefix 子路径）
+        # 前提: rmq.ai100.me 的 DNS 指向 traefik 入口，且 TLS 证书覆盖该域名
+        - "traefik.http.routers.rocketmq-dashboard.rule=Host(`rmq.ai100.me`)"
         - "traefik.http.routers.rocketmq-dashboard.entrypoints=web,websecure"
         - "traefik.http.routers.rocketmq-dashboard.tls=true"
-        - "traefik.http.routers.rocketmq-dashboard.priority=100"
-        - "traefik.http.services.rocketmq-dashboard.loadbalancer.server.port=8080"
+        # dashboard v2.x 镜像默认监听 8082（不是 8080）
+        - "traefik.http.services.rocketmq-dashboard.loadbalancer.server.port=8082"
     logging:
       driver: "json-file"
       options:
