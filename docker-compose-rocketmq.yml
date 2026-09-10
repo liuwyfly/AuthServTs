@@ -84,6 +84,10 @@ services:
       ai100-me-network:
         aliases:
           - rocketmq-broker
+    ports:
+      - target: 8081
+        published: 8081
+        mode: host
     deploy:
       replicas: 1
       restart_policy:
