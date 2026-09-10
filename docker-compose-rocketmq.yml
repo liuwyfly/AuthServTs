@@ -10,6 +10,9 @@
 # Traefik 说明:
 #   复用 ai100 stack 的 traefik (已占用 80/443)，本 stack 不再部署 traefik。
 #   dashboard 已带 traefik labels，会被 ai100 的 traefik 自动发现。
+#
+# 生产环境部署:
+# docker stack deploy --with-registry-auth -c docker-compose-rocketmq.yml rocketmq
 
 networks:
   ai100-me-network:
