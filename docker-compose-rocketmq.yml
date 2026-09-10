@@ -131,7 +131,9 @@ services:
       # 挂子路径会 404，所以生产用独立域名 rmq.ai100.me 根路径提供服务
       # forward-headers-strategy=framework: 生产请求由 Traefik 转发（带 X-Forwarded-* 头），
       # 开启后 Spring 才会按转发头生成正确的重定向/基地址 URL
-      - JAVA_OPTS=-Drocketmq.config.namesrvAddr=rocketmq-namesrv:9876 -Drocketmq.config.loginRequired=true -Drocketmq.config.dataPath=/tmp/rocketmq-console/data -Dserver.forward-headers-strategy=framework
+      # 显式限制堆为 256m：不显式设置时 JVM 默认堆 ≈ 容器内存的 1/4 (~128m)，
+      # 加上 metaspace/线程栈容易顶到内存 limit 导致频繁 Full GC、页面刷新慢
+      - JAVA_OPTS=-Xms256m -Xmx256m -Drocketmq.config.namesrvAddr=rocketmq-namesrv:9876 -Drocketmq.config.loginRequired=true -Drocketmq.config.dataPath=/tmp/rocketmq-console/data -Dserver.forward-headers-strategy=framework
       - TZ=Asia/Shanghai
     configs:
       - source: rocketmq_dashboard_users
@@ -152,11 +154,12 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '0.50'
-          memory: 512M
+          # Xmx256m + metaspace/线程栈/direct memory，512M 太紧，放宽到 768M
+          cpus: '1.00'
+          memory: 768M
         reservations:
-          cpus: '0.25'
-          memory: 256M
+          cpus: '0.50'
+          memory: 384M
       labels:
         - "traefik.enable=true"
         # 独立域名根路径提供服务（前端静态资源是绝对路径，不能用 PathPrefix 子路径）
