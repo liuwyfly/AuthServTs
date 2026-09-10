@@ -2,3 +2,5 @@ tls:
   certificates:
     - certFile: /certs/api.ai100.me.pem
       keyFile: /certs/api.ai100.me.key
+    - certFile: /certs/rmq.ai100.me_v1.pem
+      keyFile: /certs/rmq.ai100.me_v1.key
