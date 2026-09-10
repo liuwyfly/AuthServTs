@@ -19,7 +19,5 @@ services:
         published: 8082
         mode: ingress
     environment:
-      # 本地直连根路径访问 http://localhost:8081/ ，不带 context-path：
-      # dashboard 前端静态资源用的是绝对路径 /static/...，挂子路径必然 404
       - JAVA_OPTS=-Drocketmq.config.namesrvAddr=rocketmq-namesrv:9876 -Drocketmq.config.loginRequired=true -Drocketmq.config.dataPath=/tmp/rocketmq-console/data
       - TZ=Asia/Shanghai

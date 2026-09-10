@@ -129,7 +129,9 @@ services:
       # loginRequired=true 开启登录；用户列表来自挂载的 users.properties
       # 注意: 不设 context-path —— dashboard 前端静态资源用绝对路径 /static/...，
       # 挂子路径会 404，所以生产用独立域名 rmq.ai100.me 根路径提供服务
-      - JAVA_OPTS=-Drocketmq.config.namesrvAddr=rocketmq-namesrv:9876 -Drocketmq.config.loginRequired=true -Drocketmq.config.dataPath=/tmp/rocketmq-console/data
+      # forward-headers-strategy=framework: 生产请求由 Traefik 转发（带 X-Forwarded-* 头），
+      # 开启后 Spring 才会按转发头生成正确的重定向/基地址 URL
+      - JAVA_OPTS=-Drocketmq.config.namesrvAddr=rocketmq-namesrv:9876 -Drocketmq.config.loginRequired=true -Drocketmq.config.dataPath=/tmp/rocketmq-console/data -Dserver.forward-headers-strategy=framework
       - TZ=Asia/Shanghai
     configs:
       - source: rocketmq_dashboard_users
