@@ -43,6 +43,10 @@ services:
           - rocketmq-namesrv
     deploy:
       replicas: 1
+      # 固定在 172.18.129.56 (iZf8z34gcscvu7fs9wwafnZ) 上运行
+      placement:
+        constraints:
+          - node.hostname == iZf8z34gcscvu7fs9wwafnZ
       restart_policy:
         condition: any
         delay: 10s
@@ -72,7 +76,8 @@ services:
     # namesrvAddr，必须用 -n 显式指定，否则启动报 "NamesrvAddr is not configured"
     command: sh mqbroker -c /etc/rocketmq/broker.conf -n rocketmq-namesrv:9876 --enable-proxy
     environment:
-      - JAVA_OPT=-server -Xms1g -Xmx1g -Xmn512m
+      # 8GB 内存机器，堆放宽到 2g（broker 另有堆外 mmap 开销）
+      - JAVA_OPT=-server -Xms2g -Xmx2g -Xmn1g
       - TZ=Asia/Shanghai
     volumes:
       - rocketmq-broker-store:/home/volumes/store
@@ -90,6 +95,11 @@ services:
         mode: host
     deploy:
       replicas: 1
+      # 固定在 172.18.129.56 (iZf8z34gcscvu7fs9wwafnZ) 上运行
+      # 8081 是 mode: host 端口，broker 必须固定在这台机器，否则端口会漂
+      placement:
+        constraints:
+          - node.hostname == iZf8z34gcscvu7fs9wwafnZ
       restart_policy:
         condition: any
         delay: 10s
@@ -98,7 +108,7 @@ services:
       resources:
         limits:
           cpus: '1.00'
-          memory: 1536M
+          memory: 2560M
         reservations:
           cpus: '0.50'
           memory: 1G
@@ -129,6 +139,10 @@ services:
       - ai100-me-network
     deploy:
       replicas: 1
+      # 固定在 172.18.129.56 (iZf8z34gcscvu7fs9wwafnZ) 上运行
+      placement:
+        constraints:
+          - node.hostname == iZf8z34gcscvu7fs9wwafnZ
       restart_policy:
         condition: any
         delay: 10s

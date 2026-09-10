@@ -68,3 +68,5 @@ dist
 .env.test
 
 src/generated/prisma-client
+
+.keepgoing
