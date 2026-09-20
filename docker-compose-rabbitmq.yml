@@ -1,0 +1,89 @@
+# Docker Swarm Stack for RabbitMQ 4.3.5 (management-alpine, 带管理界面)
+# Usage: docker stack deploy --with-registry-auth -c docker-compose-rabbitmq.yml rabbitmq
+#
+# 包含: rabbitmq 单节点 (AMQP 5672; Management UI 默认不对外暴露)
+#
+# 网络说明:
+#   本 stack 与主 stack (ai100) 部署在同一个 Swarm，
+#   所有服务加入 ai100 创建的共享网络 ai100_ai100-me-network (external)。
+#   同网络内的客户端直接用别名 rabbitmq:5672 访问。
+#
+# Management UI 访问 (安全考虑不常开，管理员需要时临时开放):
+#   开启: docker service update --publish-add published=15672,target=15672,mode=host rabbitmq_rabbitmq
+#   关闭: docker service update --publish-rm 15672 rabbitmq_rabbitmq
+#   然后访问 http://172.18.129.56:15672/ (明文 HTTP，用完立即关闭；
+#   云安全组也不要对公网放行 15672，双保险)
+#
+# 生产环境部署:
+# docker stack deploy --with-registry-auth -c docker-compose-rabbitmq.yml rabbitmq
+
+networks:
+  ai100-me-network:
+    external: true
+    name: ai100_ai100-me-network
+
+# secret 需先在 Swarm 管理节点手动创建（只创建一次，stack 删了重建也还在）:
+#   printf 'default_user = admin\ndefault_pass = 123456A$\n' | docker secret create rabbitmq_conf -
+# 说明: RabbitMQ 4.3 起弃用了 RABBITMQ_DEFAULT_USER_FILE/PASS_FILE 环境变量（容器直接报错退出），
+#       改为把整个 rabbitmq.conf 作为 secret 挂载。
+secrets:
+  rabbitmq_conf:
+    external: true
+
+volumes:
+  rabbitmq-data:
+
+services:
+  # ------------------------------------------------------------------
+  # RabbitMQ (单节点, 内置 Management 插件)
+  # ------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:4.3.5-management-alpine
+    hostname: rabbitmq
+    environment:
+      - TZ=Asia/Shanghai
+    secrets:
+      # 挂载为 /etc/rabbitmq/rabbitmq.conf，内容见文件头部 secret 创建说明
+      # default_user/default_pass 仅首次初始化数据目录时生效
+      - source: rabbitmq_conf
+        target: /etc/rabbitmq/rabbitmq.conf
+        mode: 0444
+    volumes:
+      - rabbitmq-data:/home/volumes/rabbitmq
+    networks:
+      ai100-me-network:
+        # 固定别名：无论 stack 名是什么，同网络内的客户端都可用该名字访问
+        aliases:
+          - rabbitmq
+    ports:
+      # AMQP 端口，mode: host 供 Swarm 外的客户端直连
+      # Management UI (15672) 不在此发布，需要时用 docker service update 临时开启（见文件头部说明）
+      - target: 5672
+        published: 5672
+        mode: host
+    deploy:
+      replicas: 1
+      # 固定在 172.18.129.56 (iZf8z34gcscvu7fs9wwafnZ) 上运行
+      # 5672 是 mode: host 端口，且 volume 是节点本地存储，必须固定在这台机器
+      placement:
+        constraints:
+          - node.hostname == iZf8z34gcscvu7fs9wwafnZ
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service_name,environment"
+        env: "OS_VERSION"

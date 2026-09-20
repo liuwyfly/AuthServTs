@@ -1,0 +1,65 @@
+# RabbitMQ 本地开发 stack（独立文件，不与生产文件合并）
+#
+# 为什么不用 override 合并:
+#   docker stack deploy 合并多个 -c 文件时，列表字段只追加不替换（不支持 !reset），
+#   生产文件里的 node.hostname placement 约束无法通过 override 去掉。
+#
+# 与生产文件的差异:
+#   - 无 placement 约束（本地单节点）
+#   - 暴露 15672 (Management UI)，不走 traefik
+#   - 账号密码用普通环境变量（本地开发从简，不需要 docker secret）
+#     注意: RabbitMQ 4.3 已弃用 RABBITMQ_DEFAULT_USER_FILE/PASS_FILE，普通变量仍可用
+#
+# 前置条件:
+#   docker swarm init   (如果本地还没初始化 Swarm)
+#   docker network create --driver overlay --attachable ai100_ai100-me-network
+#
+# 部署:
+#   docker stack deploy -c docker-compose-rabbitmq.local.yml rabbitmq
+#
+# 访问:
+#   AMQP:          localhost:5672
+#   Management UI: http://localhost:15672/  (admin / 123456A$)
+
+networks:
+  ai100-me-network:
+    external: true
+    name: ai100_ai100-me-network
+
+volumes:
+  rabbitmq-data:
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.3.5-management-alpine
+    hostname: rabbitmq
+    environment:
+      # 仅首次初始化数据目录时生效
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=123456$$A
+      - TZ=Asia/Shanghai
+    volumes:
+      - rabbitmq-data:/home/volumes/rabbitmq
+    networks:
+      ai100-me-network:
+        aliases:
+          - rabbitmq
+    ports:
+      - target: 5672
+        published: 5672
+        mode: host
+      - target: 15672
+        published: 15672
+        mode: host
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
