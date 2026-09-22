@@ -216,6 +216,8 @@ services:
       - CORS_ORIGIN=https://ai100.me,https://www.ai100.me,https://math.ai100.me,http://localhost:5174
       # --- Service URL AuthServ ---
       - AUTH_SERVICE_URL=http://auth-serv:3000
+      # --- RabbitMQ 服务主机名和端口 ---
+      - HT_RABBITMQ_SERVICE=ht-rabbit-mq
       # --- API 服务间调用，使用 API_USER 生成 jwt token ---
       - API_USER=HanTu
     secrets:
