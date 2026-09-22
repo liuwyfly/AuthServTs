@@ -217,7 +217,7 @@ services:
       # --- Service URL AuthServ ---
       - AUTH_SERVICE_URL=http://auth-serv:3000
       # --- RabbitMQ 服务主机名和端口 ---
-      - HT_RABBITMQ_SERVICE=ht-rabbit-mq
+      - HT_RABBITMQ_SERVICE=http://ht-rabbit-mq:3000
       # --- API 服务间调用，使用 API_USER 生成 jwt token ---
       - API_USER=HanTu
     secrets:
