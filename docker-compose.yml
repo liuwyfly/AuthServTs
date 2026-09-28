@@ -52,10 +52,10 @@ services:
     ports:
       - target: 80
         published: 80
-        mode: ingress
+        mode: host
       - target: 443
         published: 443
-        mode: ingress
+        mode: host
     volumes:
       - type: bind
         source: /var/run/docker.sock
@@ -72,7 +72,7 @@ services:
     networks:
       - ai100-me-network
     deploy:
-      replicas: 1
+      mode: global
       placement:
         constraints:
           - node.role == manager

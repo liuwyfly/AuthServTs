@@ -7,6 +7,7 @@ export interface AppOptions extends FastifyServerOptions, Partial<AutoloadPlugin
 }
 // Pass --options via CLI arguments in command to enable these options.
 const options: AppOptions = {
+  trustProxy: '10.0.0.0/8'
 }
 
 function normalizeRoutePrefix (routePrefix?: string): string {
