@@ -109,7 +109,7 @@ services:
       - FASTIFY_ROUTE_PREFIX=/auth-serv
       # --- Aliyun RDS MySQL connection ---
       - MYSQL_PORT=3306
-      - MYSQL_DATABASE=easterly
+      - MYSQL_DATABASE=von_neumann
       - PRISMA_CONNECTION_LIMIT=2
       # --- 微信 app id ---
       - WECHAT_APP_ID=wxc0bce732a4583a46
@@ -187,7 +187,7 @@ services:
   # MathLearning Application
   # ------------------------------------------------------------------
   math-learning:
-    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.1.15
+    image: ht-repo-registry.cn-heyuan.cr.aliyuncs.com/ht-elite/math-learning:1.1.16
     environment:
       - FASTIFY_PORT=3000
       - FASTIFY_ADDRESS=0.0.0.0
