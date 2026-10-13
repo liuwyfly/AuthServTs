@@ -208,6 +208,7 @@ services:
       - ALIYUN_OSS_ROLE_ARN=acs:ram::1451082920712477:role/htuser-oss
       - ALIYUN_OSS_BUCKET=htuser
       - ALIYUN_OSS_REGION=oss-cn-wulanchabu
+      - ALIYUN_OSS_CUSTOM_DOMAIN=https://uimg.ai100.me
       # --- 微信 app id ---
       - WECHAT_APP_ID=wxc0bce732a4583a46
       # --- Secrets ---
