@@ -30,7 +30,7 @@ secrets:
     external: true
 
 configs:
-  tls_config_v2:
+  tls_config_v3:
     file: ./deploy/traefik/tls.yml
 
 services:
@@ -68,7 +68,7 @@ services:
         target: /certs
         read_only: true
     configs:
-      - source: tls_config_v2
+      - source: tls_config_v3
         target: /etc/traefik/dynamic/tls.yml
         mode: 0444
     networks:
