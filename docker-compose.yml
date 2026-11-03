@@ -75,9 +75,6 @@ services:
       - ai100-me-network
     deploy:
       mode: global
-      placement:
-        constraints:
-          - node.role == manager
       restart_policy:
         condition: any
         delay: 10s
