@@ -1,5 +1,5 @@
 # Docker Swarm Stack for AuthServTs
-# Usage: docker stack deploy -c docker-compose.yml ai100
+# Usage: docker stack deploy --with-registry-auth -c docker-compose.yml ai100
 #
 # NOTE: This stack uses an external Aliyun RDS MySQL database.
 #       No MySQL container is deployed inside the Swarm.
