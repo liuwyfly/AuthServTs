@@ -26,8 +26,6 @@ secrets:
     external: true
   wechat_app_secret:
     external: true
-  mysql_url_lnl:
-    external: true
 
 configs:
   tls_config_v3:
