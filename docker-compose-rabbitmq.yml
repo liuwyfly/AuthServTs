@@ -47,7 +47,9 @@ services:
         mode: 0444
     volumes:
       # bind mount: 宿主机目录需先在 172.18.129.56 (iZf8z34gcscvu7fs9wwafnZ) 上创建并授权:
-      #   mkdir -p /data/rabbitmq && chown -R 999:999 /data/rabbitmq && chmod 750 /data/rabbitmq
+      #   mkdir -p /data/rabbitmq && chown -R 100:101 /data/rabbitmq && chmod 750 /data/rabbitmq
+      # 注意: 官方镜像 rabbitmq 用户是 uid=100/gid=101（不是 999），且目录必须有 x 权限,
+      #       否则容器内无法读写 .erlang.cookie, 会以 "Error when reading /var/lib/rabbitmq/.erlang.cookie: eacces" 崩溃
       - /data/rabbitmq:/var/lib/rabbitmq
     networks:
       ai100-me-network:
