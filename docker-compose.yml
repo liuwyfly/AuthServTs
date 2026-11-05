@@ -35,10 +35,43 @@ services:
   # ------------------------------------------------------------------
   # Reverse Proxy / Load Balancer
   # ------------------------------------------------------------------
+  # ------------------------------------------------------------------
+  # Read-only Docker API proxy for Traefik.
+  # The swarm provider must read Docker API from a MANAGER node;
+  # worker nodes cannot list swarm services from their local socket.
+  # ------------------------------------------------------------------
+  socket-proxy:
+    image: wollomatic/socket-proxy:1.13.2
+    # nobody + host docker group (gid of /var/run/docker.sock on the manager node)
+    user: "65534:999"
+    environment:
+      - SP_LISTENIP=0.0.0.0
+      - SP_ALLOWFROM=10.0.1.0/24
+      - SP_ALLOW_HEAD=.*
+      - 'SP_ALLOW_GET=/v1\..{1,2}/(version|_ping|info|services.*|tasks.*|networks.*|nodes.*|events.*)'
+      - 'SP_ALLOW_GET_2=/(_ping|version)'
+      - SP_WATCHDOGINTERVAL=3600
+      - SP_STOPONWATCHDOG=true
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+    networks:
+      - ai100-me-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+
   traefik:
     image: traefik:v3.6.1
     environment:
       - DOCKER_API_VERSION=1.40
+      - DOCKER_HOST=tcp://socket-proxy:2375
     command:
       - "--api.dashboard=false"
       - "--providers.swarm=true"
@@ -57,10 +90,6 @@ services:
         published: 443
         mode: host
     volumes:
-      - type: bind
-        source: /var/run/docker.sock
-        target: /var/run/docker.sock
-        read_only: true
       - type: bind
         source: /opt/webcert
         target: /certs

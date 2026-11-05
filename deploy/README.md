@@ -19,7 +19,7 @@
 ```
 
 - **编排引擎**：Docker Swarm Mode（3 台服务器全部作为 Manager 节点，高可用）
-- **入口网关**：Traefik（自动服务发现、负载均衡、HTTPS 可选）
+- **入口网关**：Traefik（自动服务发现、负载均衡、HTTPS 可选）。Traefik 通过 `socket-proxy`（只读 Docker API 代理，固定在 manager 节点）读取 Swarm 服务配置——worker 节点无法通过本机 socket 读取集群状态。
 - **应用**：AuthServTs（Fastify + TypeScript）
 - **数据库**：阿里云 RDS MySQL（`rm-f8z432717qy6hg59r.mysql.rds.aliyuncs.com`），不再在 Swarm 内运行 MySQL 容器。
 
