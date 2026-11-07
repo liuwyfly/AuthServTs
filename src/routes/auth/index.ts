@@ -59,10 +59,6 @@ const auth: FastifyPluginAsync = async (fastify): Promise<void> => {
     schema: { body: authorizationRoleBodySchema }
   }, AuthorizationByRoleHandler)
 
-  // 微信登录 通过 code 获取 access_token
-  fastify.post<{ Body: WxCodeBody }>('/wechat_code', {
-    schema: { body: wxCodeBodySchema }
-  }, wechatCodeHandler)
 }
 
 export default auth
